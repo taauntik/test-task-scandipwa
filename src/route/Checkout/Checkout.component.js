@@ -4,29 +4,73 @@ import "./Checkout.extension.style.scss";
 
 class Checkout extends SourceCheckout {
   state = {
-    currentIndex: 1,
+    currentIndex: [1],
   };
 
-  renderProgressBar = ({ selected = false, end = false, name = "shipping", index = 1}) => {
+  renderProgressBar = ({
+    selected = false,
+    end = false,
+    name = "shipping",
+    index = 1,
+  }) => {
     return (
       <div className="progress">
         <div className={selected ? `line` : "notLine"}></div>
         {end ? null : (
-           <div>
+          <div>
             <div className={selected ? `circle` : "notCircle"}>{index}</div>
             <div className="name">{name}</div>
-           </div>
+          </div>
         )}
       </div>
     );
   };
+
+  componentDidMount = () => {
+    const stepMap = Object.keys(this.stepMap);
+    const step = this.props.checkoutStep;
+    if (stepMap.indexOf(step) + 1 > this.state.currentIndex.length) {
+      this.setState((prevState) => {
+        return {
+          currentIndex: [...prevState.currentIndex, 1],
+        };
+      });
+    }
+  };
+
+  componentDidUpdate(nextProps, nextState) {
+    const stepMap = Object.keys(this.stepMap);
+    console.log("NEXT PROPS", nextProps);
+    console.log("NEXT State", nextState);
+    const step = this.props.checkoutStep;
+    if (nextProps.checkoutStep !== step) {
+      if (stepMap.indexOf(step) + 1 > this.state.currentIndex.length) {
+        this.setState((prevState) => {
+          return {
+            currentIndex: [...prevState.currentIndex, 1],
+          };
+        });
+      }
+    }
+  }
+
   render() {
     const stepMap = Object.keys(this.stepMap);
+    console.log("this", this.props);
+    console.log("CURRENT INDEX", this.state.currentIndex);
     return (
       <main block="Checkout">
         <div className="ProgressBar">
           {/* {stepMap.map((item) => console.log(this.stepMap[item]))} */}
-          {stepMap.map(item => this.renderProgressBar({ selected: false,  }))}
+          {stepMap.map((item, index) => {
+            console.log(stepMap[index]);
+            return this.renderProgressBar({
+              selected: this.state.currentIndex.length - 1 >= index,
+              end: stepMap.length - 1 === index,
+              name: stepMap[index],
+              index: index + 1,
+            });
+          })}
           {/* {this.renderProgressBar({ selected: true })}
           {this.renderProgressBar({ selected: false })}
           {this.renderProgressBar({ selected: false, end: true })} */}
